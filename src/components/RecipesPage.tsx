@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Star, Clock, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function RecipesPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   const recipes = [
@@ -56,7 +58,10 @@ export default function RecipesPage() {
           <h1 className="text-3xl font-bold text-foreground">Receitas</h1>
           <p className="text-muted-foreground">Gerencie suas receitas de cerveja</p>
         </div>
-        <Button className="bg-gradient-primary hover:bg-primary-glow text-primary-foreground shadow-brew">
+        <Button 
+          onClick={() => navigate("/recipes/new")}
+          className="bg-gradient-primary hover:bg-primary-glow text-primary-foreground shadow-brew"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nova Receita
         </Button>

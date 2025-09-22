@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import RecipesPage from "./components/RecipesPage";
+import RecipeFormPage from "./components/RecipeFormPage";
 import BatchesPage from "./components/BatchesPage";
 import InventoryPage from "./components/InventoryPage";
 import CalculatorsPage from "./components/CalculatorsPage";
@@ -23,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/recipes" element={<RecipesPage />} />
+            <Route path="/recipes/new" element={<RecipeFormPage />} />
             <Route path="/batches" element={<BatchesPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/calculators" element={<CalculatorsPage />} />
