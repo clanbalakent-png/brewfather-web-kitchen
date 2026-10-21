@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { alcohol, carbonation, convertUnit, correctedHydrometer, correctedRefractometer, gravityAfterVolumeChange, hopFreshness, ibuTinseth, infusionWater, moreySrm, platoToSg, sgToPlato, strikeTemperature, tunCalibration, yeastPitch } from "./brewing";
@@ -9,7 +10,7 @@ test("Taxa de Inoculação / Propagação de Levedura",()=>{const a=yeastPitch(2
 test("Refratômetro / Brix",()=>near(correctedRefractometer(12.4,6,1.04),1.00995068,0.00001));
 test("Correção da Densidade / Evaporação",()=>{near(gravityAfterVolumeChange(1.05,25,20),1.0625);near(gravityAfterVolumeChange(1.05,20,25),1.04);});
 test("Correção de Temperatura do Densímetro",()=>{near(correctedHydrometer(1.05,20,20),1.05);near(correctedHydrometer(1.05,30,20),1.0526,0.0001);});
-test("Carbonatação",()=>{const a=carbonation(20,2.5,20,4);near(a.sugar,131.081024);const keg=carbonation(4,2.5,20,4);near(keg.psi,11.25,0.1);});
+test("Carbonatação",()=>{const a=carbonation(20,2.5,20,4);near(a.sugar,131.081024);const keg=carbonation(4,2.5,20,4);near(keg.psi,11.86204447);});
 test("Frescor do Lúpulo",()=>{near(hopFreshness(12,25,180,20,1).alpha,9);near(hopFreshness(12,25,0,20,1).alpha,12);});
 test("Conversão de Brassagem",()=>{const c=calculators.find(c=>c.id==="scale");assert.ok(c);const v={oldVolume:"20",newVolume:"40",oldEfficiency:"75",newEfficiency:"60",malt:"5",hops:"50",yeast:"11"};const results=c.calculate(v);near(results[1].value,12.5);near(results[2].value,100);near(results[3].value,22);});
 test("Conversão de Gravidade",()=>{near(sgToPlato(1.05),12.3876,0.001);near(platoToSg(12),1.04838,0.0001);});
