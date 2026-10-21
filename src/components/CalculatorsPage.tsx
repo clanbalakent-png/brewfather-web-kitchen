@@ -1,286 +1,68 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Calculator, ChevronRight, RotateCcw, Search, ArrowLeftRight, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator, Beaker, Droplets, Thermometer } from "lucide-react";
-import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { calculators, validateCalculator, type CalculatorDefinition, type Values, type Result } from "@/lib/calculator-registry";
+import { convertUnit, unitFamilies, type UnitFamily } from "@/lib/brewing";
 
-export default function CalculatorsPage() {
-  const [abvData, setAbvData] = useState({ og: "", fg: "" });
-  const [ibuData, setIbuData] = useState({ hopWeight: "", alphaAcid: "", boilTime: "", volume: "" });
-  const [srmData, setSrmData] = useState({ grain1: "", color1: "", grain2: "", color2: "", volume: "" });
-
-  const calculateABV = () => {
-    const og = parseFloat(abvData.og);
-    const fg = parseFloat(abvData.fg);
-    if (og && fg) {
-      return ((og - fg) * 131.25).toFixed(2);
-    }
-    return "0.00";
-  };
-
-  const calculateIBU = () => {
-    const weight = parseFloat(ibuData.hopWeight);
-    const alpha = parseFloat(ibuData.alphaAcid);
-    const time = parseFloat(ibuData.boilTime);
-    const volume = parseFloat(ibuData.volume);
-    
-    if (weight && alpha && time && volume) {
-      const utilization = time >= 60 ? 0.30 : time * 0.005;
-      return ((weight * alpha * utilization * 1000) / volume).toFixed(1);
-    }
-    return "0.0";
-  };
-
-  const calculateSRM = () => {
-    const grain1Weight = parseFloat(srmData.grain1);
-    const grain1Color = parseFloat(srmData.color1);
-    const grain2Weight = parseFloat(srmData.grain2);
-    const grain2Color = parseFloat(srmData.color2);
-    const volume = parseFloat(srmData.volume);
-    
-    if (volume) {
-      const mcu = ((grain1Weight * grain1Color) + (grain2Weight * grain2Color)) / volume;
-      return (1.4922 * Math.pow(mcu, 0.6859)).toFixed(1);
-    }
-    return "0.0";
-  };
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Calculadoras</h1>
-        <p className="text-muted-foreground">Ferramentas essenciais para cervejeiros</p>
-      </div>
-
-      <Tabs defaultValue="abv" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-muted">
-          <TabsTrigger value="abv" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <Calculator className="h-4 w-4 mr-2" />
-            ABV
-          </TabsTrigger>
-          <TabsTrigger value="ibu" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <Beaker className="h-4 w-4 mr-2" />
-            IBU
-          </TabsTrigger>
-          <TabsTrigger value="srm" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <Droplets className="h-4 w-4 mr-2" />
-            SRM
-          </TabsTrigger>
-          <TabsTrigger value="temp" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <Thermometer className="h-4 w-4 mr-2" />
-            Temp
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="abv" className="mt-6">
-          <Card className="shadow-foam border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <Calculator className="h-5 w-5 mr-2 text-accent" />
-                Calculadora de ABV
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="og">Densidade Inicial (OG)</Label>
-                  <Input
-                    id="og"
-                    placeholder="1.050"
-                    value={abvData.og}
-                    onChange={(e) => setAbvData({ ...abvData, og: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fg">Densidade Final (FG)</Label>
-                  <Input
-                    id="fg"
-                    placeholder="1.010"
-                    value={abvData.fg}
-                    onChange={(e) => setAbvData({ ...abvData, fg: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-              </div>
-              <div className="pt-4 text-center">
-                <div className="bg-gradient-secondary p-6 rounded-lg">
-                  <p className="text-sm text-secondary-foreground mb-2">Teor Alcoólico</p>
-                  <p className="text-3xl font-bold text-accent">{calculateABV()}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="ibu" className="mt-6">
-          <Card className="shadow-foam border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <Beaker className="h-5 w-5 mr-2 text-accent" />
-                Calculadora de IBU
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hopWeight">Peso do Lúpulo (g)</Label>
-                  <Input
-                    id="hopWeight"
-                    placeholder="30"
-                    value={ibuData.hopWeight}
-                    onChange={(e) => setIbuData({ ...ibuData, hopWeight: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="alphaAcid">Ácido Alfa (%)</Label>
-                  <Input
-                    id="alphaAcid"
-                    placeholder="12.5"
-                    value={ibuData.alphaAcid}
-                    onChange={(e) => setIbuData({ ...ibuData, alphaAcid: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="boilTime">Tempo de Fervura (min)</Label>
-                  <Input
-                    id="boilTime"
-                    placeholder="60"
-                    value={ibuData.boilTime}
-                    onChange={(e) => setIbuData({ ...ibuData, boilTime: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="volume">Volume do Mosto (L)</Label>
-                  <Input
-                    id="volume"
-                    placeholder="20"
-                    value={ibuData.volume}
-                    onChange={(e) => setIbuData({ ...ibuData, volume: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-              </div>
-              <div className="pt-4 text-center">
-                <div className="bg-gradient-secondary p-6 rounded-lg">
-                  <p className="text-sm text-secondary-foreground mb-2">Amargor</p>
-                  <p className="text-3xl font-bold text-accent">{calculateIBU()} IBU</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="srm" className="mt-6">
-          <Card className="shadow-foam border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <Droplets className="h-5 w-5 mr-2 text-accent" />
-                Calculadora de SRM (Cor)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="grain1">Malte 1 - Peso (kg)</Label>
-                  <Input
-                    id="grain1"
-                    placeholder="4.0"
-                    value={srmData.grain1}
-                    onChange={(e) => setSrmData({ ...srmData, grain1: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="color1">Malte 1 - Cor (°L)</Label>
-                  <Input
-                    id="color1"
-                    placeholder="2"
-                    value={srmData.color1}
-                    onChange={(e) => setSrmData({ ...srmData, color1: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="grain2">Malte 2 - Peso (kg)</Label>
-                  <Input
-                    id="grain2"
-                    placeholder="0.5"
-                    value={srmData.grain2}
-                    onChange={(e) => setSrmData({ ...srmData, grain2: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="color2">Malte 2 - Cor (°L)</Label>
-                  <Input
-                    id="color2"
-                    placeholder="40"
-                    value={srmData.color2}
-                    onChange={(e) => setSrmData({ ...srmData, color2: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="volumeSrm">Volume Final (L)</Label>
-                  <Input
-                    id="volumeSrm"
-                    placeholder="20"
-                    value={srmData.volume}
-                    onChange={(e) => setSrmData({ ...srmData, volume: e.target.value })}
-                    className="border-border"
-                  />
-                </div>
-              </div>
-              <div className="pt-4 text-center">
-                <div className="bg-gradient-secondary p-6 rounded-lg">
-                  <p className="text-sm text-secondary-foreground mb-2">Cor da Cerveja</p>
-                  <p className="text-3xl font-bold text-accent">{calculateSRM()} SRM</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="temp" className="mt-6">
-          <Card className="shadow-foam border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <Thermometer className="h-5 w-5 mr-2 text-accent" />
-                Conversor de Temperatura
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="celsius">Celsius (°C)</Label>
-                  <Input
-                    id="celsius"
-                    placeholder="20"
-                    className="border-border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fahrenheit">Fahrenheit (°F)</Label>
-                  <Input
-                    id="fahrenheit"
-                    placeholder="68"
-                    className="border-border"
-                  />
-                </div>
-              </div>
-              <div className="text-center text-sm text-muted-foreground">
-                Temperaturas comuns: Fermentação Ale (18-24°C), Lager (7-13°C), Mash (64-68°C)
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+const format = (value: number, digits = 2) => value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+function ResultPanel({ results, error }: { results: Result[]; error?: string }) {
+  return <section aria-label="Resultados" aria-live="polite" className="border-t border-border pt-6 mt-6">
+    <h3 className="text-sm font-semibold text-muted-foreground mb-4">RESULTADOS</h3>
+    {error ? <p role="alert" className="text-destructive text-sm">{error}</p> : <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">{results.map((result, i) => <div key={`${result.label}-${i}`} className="min-w-0"><dt className="text-sm text-muted-foreground mb-1">{result.label}</dt><dd className="text-2xl font-semibold text-primary break-words tabular-nums">{format(result.value, result.digits)} <span className="text-sm font-medium text-muted-foreground">{result.unit}</span></dd></div>)}</dl>}
+  </section>;
+}
+function UnitConverter({ fixed }: { fixed: CalculatorDefinition["converter"] }) {
+  const [family, setFamily] = useState<UnitFamily>(fixed && fixed !== "all" ? fixed : "volume");
+  const units = Object.keys(unitFamilies[family].units);
+  const [from, setFrom] = useState(units[0]);
+  const [to, setTo] = useState(units[1]);
+  const [input, setInput] = useState("1");
+  const number = Number(input.replace(",", "."));
+  const celsius = family === "temperature" ? convertUnit(number, family, from, "°C") : 0;
+  const error = !input.trim() || !Number.isFinite(number) ? "Informe um número válido." : family === "temperature" && celsius < -273.15 ? "A temperatura não pode ser inferior ao zero absoluto." : family !== "temperature" && number < 0 ? "Informe um valor maior ou igual a zero." : undefined;
+  return <>
+    <div className="flex justify-end mb-4"><Button size="icon" variant="ghost" aria-label="Restaurar conversão" title="Restaurar conversão" onClick={() => {setInput("1");setFrom(units[0]);setTo(units[1]);}}><RotateCcw /></Button></div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {fixed === "all" && <div className="sm:col-span-2 space-y-2"><Label htmlFor="family">Grandeza</Label><Select value={family} onValueChange={value => { const next = value as UnitFamily; const keys = Object.keys(unitFamilies[next].units);setFamily(next);setFrom(keys[0]);setTo(keys[1]); }}><SelectTrigger id="family"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(unitFamilies).map(([key, item]) => <SelectItem key={key} value={key}>{item.label}</SelectItem>)}</SelectContent></Select></div>}
+      <div className="space-y-2 sm:col-span-2"><Label htmlFor="convert-value">Valor</Label><Input id="convert-value" inputMode="decimal" value={input} onChange={e => setInput(e.target.value)} /></div>
+      {[{id:"from",label:"De",value:from,set:setFrom},{id:"to",label:"Para",value:to,set:setTo}].map(field => <div className="space-y-2" key={field.id}><Label htmlFor={field.id}>{field.label}</Label><Select value={field.value} onValueChange={field.set}><SelectTrigger id={field.id}><SelectValue /></SelectTrigger><SelectContent>{units.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}</SelectContent></Select></div>)}
     </div>
-  );
+    <div className="flex justify-center mt-3"><Button variant="outline" size="icon" title="Inverter unidades" aria-label="Inverter unidades" onClick={()=>{setFrom(to);setTo(from);}}><ArrowLeftRight /></Button></div>
+    <ResultPanel error={error} results={[{label:"Valor convertido",value:convertUnit(number,family,from,to),unit:to,digits:6}]} />
+  </>;
+}
+function CalculationForm({ calculator }: { calculator: CalculatorDefinition }) {
+  const defaults = Object.fromEntries(calculator.fields.map(field => [field.id, field.initial]));
+  const [values, setValues] = useState<Values>(defaults);
+  let error = validateCalculator(calculator, values);
+  const results = error ? [] : calculator.calculate(values);
+  if (!error && results.some(result => !Number.isFinite(result.value))) error = "Não foi possível calcular com estes valores. Confira as entradas.";
+  return <>
+    <div className="flex justify-end mb-4"><Button size="icon" variant="ghost" title="Restaurar valores" aria-label="Restaurar valores" onClick={() => setValues(defaults)}><RotateCcw /></Button></div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{calculator.fields.map(field => <div key={field.id} className="space-y-2 min-w-0"><Label htmlFor={`calc-${field.id}`} className="leading-relaxed">{field.label}</Label>{field.options ? <Select value={values[field.id]} onValueChange={value => setValues(old=>({...old,[field.id]:value}))}><SelectTrigger id={`calc-${field.id}`} className="h-auto min-h-10 text-left [&>span]:whitespace-normal"><SelectValue /></SelectTrigger><SelectContent>{field.options.map(option=><SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select> : <Input id={`calc-${field.id}`} inputMode="decimal" value={values[field.id]} onChange={e=>setValues(old=>({...old,[field.id]:e.target.value}))} />}</div>)}</div>
+    <ResultPanel results={results} error={error} />
+    {calculator.note && <p className="text-xs text-muted-foreground leading-relaxed border-t border-border pt-4 mt-6">{calculator.note}</p>}
+  </>;
+}
+export default function CalculatorsPage() {
+  const [selected, setSelected] = useState("alcohol");
+  const [search, setSearch] = useState("");
+  const calculator = calculators.find(item => item.id === selected) ?? calculators[0];
+  const normalized = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const filtered = calculators.filter(item=>normalized(item.title).includes(normalized(search)));
+  return <div className="space-y-6">
+    <header><div className="flex items-center gap-3"><Calculator className="h-7 w-7 text-primary shrink-0" /><h1 className="text-3xl font-bold text-foreground">Calculadoras</h1></div><p className="text-muted-foreground mt-2">Geral e mostura · {calculators.length} calculadoras</p></header>
+    <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-6 items-start">
+      <aside aria-label="Escolher calculadora" className="min-w-0"><div className="relative mb-4"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input aria-label="Buscar calculadora" placeholder="Buscar calculadora" className="pl-9" value={search} onChange={e=>setSearch(e.target.value)} /></div>
+        <nav className="max-h-72 lg:max-h-none overflow-y-auto">{(["Geral","Mostura"] as const).map(group=>{const items=filtered.filter(item=>item.group===group);return items.length>0 && <section key={group} className="mb-5"><h2 className="text-xs font-semibold text-muted-foreground uppercase mb-2 flex items-center gap-2">{group==="Mostura"&&<Thermometer className="h-4 w-4" />}{group}</h2><div className="space-y-1">{items.map(item=><Button key={item.id} variant={selected===item.id?"secondary":"ghost"} aria-current={selected===item.id?"page":undefined} onClick={()=>setSelected(item.id)} className="w-full h-auto min-h-10 justify-between text-left px-3 py-2 whitespace-normal gap-2 hover:bg-muted hover:text-foreground"><span className="min-w-0 leading-5">{item.title}</span>{selected===item.id&&<ChevronRight className="shrink-0" />}</Button>)}</div></section>;})}{filtered.length===0&&<p className="text-sm text-muted-foreground py-4">Nenhuma calculadora encontrada.</p>}</nav>
+      </aside>
+      <section aria-label={calculator.title} className="min-w-0 bg-card border border-border rounded-lg p-5 sm:p-6 shadow-foam">
+        <div className="border-b border-border pb-4"><p className="text-xs text-muted-foreground mb-1">{calculator.group}</p><h2 className="text-xl font-semibold text-foreground break-words">{calculator.title}</h2></div>
+        {calculator.converter ? <UnitConverter key={calculator.id} fixed={calculator.converter} /> : <CalculationForm key={calculator.id} calculator={calculator} />}
+      </section>
+    </div>
+  </div>;
 }
