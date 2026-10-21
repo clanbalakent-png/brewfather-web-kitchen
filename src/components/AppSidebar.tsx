@@ -1,13 +1,18 @@
-import { 
-  Home, 
-  FileText, 
-  Calculator, 
-  Package, 
-  BarChart3, 
+import {
+  Home,
+  FileText,
+  Calculator,
+  Package,
+  BarChart3,
   Settings,
   Beaker,
+  Layers,
+  FlaskConical,
+  Thermometer,
   Droplets,
-  Thermometer
+  Wrench,
+  CookingPot,
+  BookOpen,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -19,6 +24,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
 const mainItems = [
@@ -30,20 +38,28 @@ const mainItems = [
 
 const toolsItems = [
   { title: "Calculadoras", url: "/calculators", icon: Calculator },
-  { title: "Perfis de Água", url: "/water", icon: Droplets },
-  { title: "Fermentação", url: "/fermentation", icon: Thermometer },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
+];
+
+const profileItems = [
+  { title: "Equipamento", url: "/profiles/equipamento", icon: Wrench },
+  { title: "Mostura", url: "/profiles/mostura", icon: CookingPot },
+  { title: "Fermentação", url: "/profiles/fermentacao", icon: Thermometer },
+  { title: "Água", url: "/profiles/agua", icon: Droplets },
+  { title: "Estilos Personalizados", url: "/profiles/estilos", icon: BookOpen },
 ];
 
 export function AppSidebar() {
   const location = useLocation();
-  
+
   const getNavClassName = (path: string) => {
     const isActive = location.pathname === path;
-    return isActive 
-      ? "bg-primary text-primary-foreground font-medium shadow-brew" 
+    return isActive
+      ? "bg-primary text-primary-foreground font-medium shadow-brew"
       : "hover:bg-muted text-muted-foreground hover:text-foreground";
   };
+
+  const profilesActive = location.pathname.startsWith("/profiles");
 
   return (
     <Sidebar className="border-r border-border bg-card">
@@ -55,8 +71,8 @@ export function AppSidebar() {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
+                    <NavLink
+                      to={item.url}
                       className={getNavClassName(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
@@ -76,8 +92,8 @@ export function AppSidebar() {
               {toolsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
+                    <NavLink
+                      to={item.url}
                       className={getNavClassName(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
@@ -86,6 +102,29 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={profilesActive}>
+                  <NavLink to="/profiles/equipamento" className={profilesActive ? "bg-primary text-primary-foreground font-medium shadow-brew" : "hover:bg-muted text-muted-foreground hover:text-foreground"}>
+                    <Layers className="h-4 w-4" />
+                    <span>Perfis</span>
+                  </NavLink>
+                </SidebarMenuButton>
+                {profilesActive && (
+                  <SidebarMenuSub>
+                    {profileItems.map((item) => (
+                      <SidebarMenuSubItem key={item.title}>
+                        <SidebarMenuSubButton asChild isActive={location.pathname === item.url}>
+                          <NavLink to={item.url}>
+                            <item.icon className="h-3.5 w-3.5" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                )}
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -95,8 +134,8 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/settings" 
+                  <NavLink
+                    to="/settings"
                     className={getNavClassName("/settings")}
                   >
                     <Settings className="h-4 w-4" />
