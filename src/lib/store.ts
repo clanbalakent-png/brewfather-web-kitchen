@@ -68,3 +68,15 @@ export function readProfiles(slug: "equipamento" | "mostura" | "fermentacao" | "
 
 export const fmt = (v: number, d = 1) => v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
 export const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+import { bjcpStyles, type BjcpStyle } from "./catalog";
+const num = (v: string | undefined, d = 0) => { const n = Number((v ?? "").replace(",", ".")); return Number.isFinite(n) && v !== "" && v !== undefined ? n : d; };
+/** BJCP styles plus the user's custom style profiles (single values become ±10% ranges). */
+export function allStyles(): BjcpStyle[] {
+  const custom = readProfiles("estilos").map(p => {
+    const v = p.values; const around = (x: number): [number, number] => [x * 0.9, x * 1.1];
+    return { code: `custom-${p.id}`, name: `${p.name} (personalizado)`, og: [num(v.ogMin, 1.04), num(v.ogMax, 1.06)], fg: [num(v.fgMin, 1.008), num(v.fgMax, 1.014)], ibu: around(num(v.ibu, 30)), srm: around(num(v.srm, 8)), abv: around(num(v.abv, 5)) } as BjcpStyle;
+  });
+  return [...bjcpStyles, ...custom];
+}
+export const profileNumber = num;
