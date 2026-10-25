@@ -38,6 +38,7 @@ const mainItems = [
 
 const toolsItems = [
   { title: "Calculadoras", url: "/calculators", icon: Calculator },
+  { title: "Química da Água", url: "/water", icon: Droplets },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
 ];
 

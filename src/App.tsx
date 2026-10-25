@@ -11,6 +11,9 @@ import BatchesPage from "./components/BatchesPage";
 import InventoryPage from "./components/InventoryPage";
 import CalculatorsPage from "./components/CalculatorsPage";
 import ProfilesPage from "./components/ProfilesPage";
+import BatchDetailPage from "./components/BatchDetailPage";
+import WaterPage from "./components/WaterPage";
+import ReportsPage from "./components/ReportsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,14 +29,16 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/recipes" element={<RecipesPage />} />
             <Route path="/recipes/new" element={<RecipeFormPage />} />
+            <Route path="/recipes/:id" element={<RecipeFormPage />} />
             <Route path="/batches" element={<BatchesPage />} />
+            <Route path="/batches/:id" element={<BatchDetailPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/calculators" element={<CalculatorsPage />} />
             <Route path="/profiles" element={<ProfilesPage />} />
             <Route path="/profiles/:type" element={<ProfilesPage />} />
-            <Route path="/water" element={<Navigate to="/profiles/agua" replace />} />
+            <Route path="/water" element={<WaterPage />} />
             <Route path="/fermentation" element={<Navigate to="/profiles/fermentacao" replace />} />
-            <Route path="/reports" element={<div className="text-center py-12"><h2 className="text-2xl font-bold text-foreground">Relatórios</h2><p className="text-muted-foreground">Em desenvolvimento</p></div>} />
+            <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<div className="text-center py-12"><h2 className="text-2xl font-bold text-foreground">Configurações</h2><p className="text-muted-foreground">Em desenvolvimento</p></div>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
