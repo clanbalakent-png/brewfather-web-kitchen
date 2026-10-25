@@ -1,153 +1,94 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, AlertTriangle, Package } from "lucide-react";
-import { useState } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertTriangle, Pencil, Plus, Trash2, X } from "lucide-react";
+import { fermentables, hops, miscs, yeasts } from "@/lib/catalog";
+import type { InventoryItem, InventoryKind } from "@/lib/recipe-calc";
+import { fmt, money, uid, useInventory } from "@/lib/store";
+
+const kinds: { id: InventoryKind; label: string; unit: string; priceLabel: string }[] = [
+  { id: "fermentavel", label: "Fermentáveis", unit: "kg", priceLabel: "R$/kg" },
+  { id: "lupulo", label: "Lúpulos", unit: "g", priceLabel: "R$/g" },
+  { id: "levedura", label: "Leveduras", unit: "pacote", priceLabel: "R$/pacote" },
+  { id: "outro", label: "Outros", unit: "un", priceLabel: "R$/un" },
+];
+const catalogFor = (k: InventoryKind) =>
+  k === "fermentavel" ? fermentables.map(f => ({ name: f.name, price: f.price, extra: { potential: f.potential, color: f.color } }))
+  : k === "lupulo" ? hops.map(h => ({ name: h.name, price: h.price / 1000, extra: { alpha: h.alpha } }))
+  : k === "levedura" ? yeasts.map(y => ({ name: y.name, price: y.price, extra: { attenuation: y.attenuation } }))
+  : miscs.map(m => ({ name: m.name, price: m.price, extra: {} }));
 
 export default function InventoryPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const grains = [
-    { name: "Malte Pilsen", amount: 15, unit: "kg", lowStock: false, cost: 8.50 },
-    { name: "Malte Munich", amount: 2, unit: "kg", lowStock: true, cost: 12.00 },
-    { name: "Malte Crystal 60L", amount: 5, unit: "kg", lowStock: false, cost: 15.50 },
-    { name: "Malte Chocolate", amount: 0.5, unit: "kg", lowStock: true, cost: 18.00 }
-  ];
-
-  const hops = [
-    { name: "Cascade", amount: 200, unit: "g", aa: 6.8, lowStock: false, cost: 85.00 },
-    { name: "Centennial", amount: 50, unit: "g", aa: 10.2, lowStock: true, cost: 95.00 },
-    { name: "Citra", amount: 150, unit: "g", aa: 12.5, lowStock: false, cost: 120.00 },
-    { name: "Amarillo", amount: 30, unit: "g", aa: 8.9, lowStock: true, cost: 110.00 }
-  ];
-
-  const yeasts = [
-    { name: "Safale US-05", amount: 3, unit: "pcts", temp: "15-24°C", lowStock: false, cost: 25.00 },
-    { name: "Wyeast 1056", amount: 1, unit: "pct", temp: "16-22°C", lowStock: true, cost: 35.00 },
-    { name: "Lallemand Voss Kveik", amount: 2, unit: "pcts", temp: "25-40°C", lowStock: false, cost: 28.00 }
-  ];
-
-  const InventoryTable = ({ items, type }: { items: any[], type: string }) => (
-    <div className="space-y-4">
-      {items.map((item, index) => (
-        <Card key={index} className={`shadow-foam border-border/50 ${item.lowStock ? 'border-destructive/50' : ''}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <h4 className="font-medium text-foreground">{item.name}</h4>
-                  {item.lowStock && (
-                    <Badge variant="destructive" className="bg-destructive text-destructive-foreground">
-                      <AlertTriangle className="h-3 w-3 mr-1" />
-                      Baixo Estoque
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center space-x-4 mt-1 text-sm text-muted-foreground">
-                  <span>{item.amount} {item.unit}</span>
-                  {item.aa && <span>AA: {item.aa}%</span>}
-                  {item.temp && <span>Temp: {item.temp}</span>}
-                  <span>R$ {item.cost.toFixed(2)}</span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button size="sm" variant="outline" className="border-border hover:bg-muted">
-                  Editar
-                </Button>
-                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-accent">
-                  + Adicionar
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  const [items, save] = useInventory();
+  const [kind, setKind] = useState<InventoryKind>("fermentavel");
+  const [form, setForm] = useState<InventoryItem | null>(null);
+  const def = kinds.find(k => k.id === kind)!;
+  const list = items.filter(i => i.kind === kind).sort((a, b) => a.name.localeCompare(b.name));
+  const low = items.filter(i => i.amount <= i.minAmount);
+  const total = items.reduce((s, i) => s + i.amount * i.price, 0);
+  const blank = (): InventoryItem => ({ id: uid(), kind, name: "", amount: 0, unit: def.unit, price: 0, minAmount: 0 });
+  const submit = () => {
+    if (!form || !form.name.trim()) return;
+    save(items.some(i => i.id === form.id) ? items.map(i => (i.id === form.id ? form : i)) : [...items, form]);
+    setForm(null);
+  };
+  const num = (v: string) => Number(v.replace(",", ".")) || 0;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Inventário</h1>
-          <p className="text-muted-foreground">Gerencie seus ingredientes e suprimentos</p>
-        </div>
-        <Button className="bg-gradient-primary hover:bg-primary-glow text-primary-foreground shadow-brew">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Item
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h1 className="text-3xl font-bold text-foreground">Inventário</h1><p className="text-muted-foreground">{items.length} itens · valor em estoque {money(total)}</p></div>
+        <Button onClick={() => setForm(blank())} className="bg-gradient-primary text-primary-foreground shadow-brew"><Plus className="h-4 w-4 mr-2" />Adicionar item</Button>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="shadow-foam border-border/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-foreground">
-              <Package className="h-5 w-5 mr-2 text-accent" />
-              Resumo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total de Itens</span>
-              <span className="font-semibold text-foreground">{grains.length + hops.length + yeasts.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Baixo Estoque</span>
-              <span className="font-semibold text-destructive">
-                {[...grains, ...hops, ...yeasts].filter(item => item.lowStock).length}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Valor Total</span>
-              <span className="font-semibold text-foreground">
-                R$ {([...grains, ...hops, ...yeasts].reduce((acc, item) => acc + (item.cost * item.amount), 0)).toFixed(2)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2 shadow-foam border-border/50">
-          <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar ingredientes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-border"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="grains" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-muted">
-          <TabsTrigger value="grains" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Maltes ({grains.length})
-          </TabsTrigger>
-          <TabsTrigger value="hops" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Lúpulos ({hops.length})
-          </TabsTrigger>
-          <TabsTrigger value="yeasts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Leveduras ({yeasts.length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="grains" className="mt-6">
-          <InventoryTable items={grains} type="grains" />
-        </TabsContent>
-
-        <TabsContent value="hops" className="mt-6">
-          <InventoryTable items={hops} type="hops" />
-        </TabsContent>
-
-        <TabsContent value="yeasts" className="mt-6">
-          <InventoryTable items={yeasts} type="yeasts" />
-        </TabsContent>
+      {low.length > 0 && (
+        <Card className="border-destructive/50"><CardContent className="p-4 flex gap-3 items-start text-sm">
+          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+          <div><b>Estoque baixo:</b> {low.map(i => `${i.name} (${fmt(i.amount, 2)} ${i.unit})`).join(", ")}</div>
+        </CardContent></Card>
+      )}
+      <Tabs value={kind} onValueChange={v => { setKind(v as InventoryKind); setForm(null); }}>
+        <TabsList className="flex-wrap h-auto">{kinds.map(k => <TabsTrigger key={k.id} value={k.id}>{k.label} ({items.filter(i => i.kind === k.id).length})</TabsTrigger>)}</TabsList>
       </Tabs>
+
+      {form && (
+        <Card className="shadow-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0"><CardTitle>{items.some(i => i.id === form.id) ? "Editar item" : `Novo item · ${def.label}`}</CardTitle><Button variant="ghost" size="icon" aria-label="Fechar" onClick={() => setForm(null)}><X className="h-4 w-4" /></Button></CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-5 items-end">
+            <div className="space-y-1 sm:col-span-2"><Label>Do catálogo</Label>
+              <Select value="" onValueChange={n => { const c = catalogFor(form.kind).find(x => x.name === n); if (c) setForm({ ...form, name: c.name, price: c.price, ...c.extra }); }}>
+                <SelectTrigger><SelectValue placeholder="Escolher do catálogo" /></SelectTrigger>
+                <SelectContent>{catalogFor(form.kind).map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+              </Select></div>
+            <div className="space-y-1 sm:col-span-3"><Label>Nome</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+            <div className="space-y-1"><Label>Quantidade ({form.unit})</Label><Input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: num(e.target.value) })} /></div>
+            <div className="space-y-1"><Label>Mínimo ({form.unit})</Label><Input type="number" step="0.01" value={form.minAmount} onChange={e => setForm({ ...form, minAmount: num(e.target.value) })} /></div>
+            <div className="space-y-1"><Label>{def.priceLabel}</Label><Input type="number" step="0.01" value={form.price} onChange={e => setForm({ ...form, price: num(e.target.value) })} /></div>
+            <Button onClick={submit} className="sm:col-span-2">Salvar</Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {list.length === 0 && <p className="text-muted-foreground">Nenhum item nesta categoria.</p>}
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {list.map(i => (
+          <Card key={i.id} className="shadow-card"><CardContent className="p-4 flex items-start justify-between gap-2">
+            <div>
+              <div className="font-semibold">{i.name}</div>
+              <div className="text-sm text-muted-foreground">{fmt(i.amount, 2)} {i.unit} · {money(i.amount * i.price)}{i.alpha ? ` · ${i.alpha}% AA` : ""}{i.color !== undefined ? ` · ${i.color}°L` : ""}</div>
+              {i.amount <= i.minAmount && <Badge variant="destructive" className="mt-1">Estoque baixo</Badge>}
+            </div>
+            <div className="flex">
+              <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => setForm(i)}><Pencil className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => save(items.filter(x => x.id !== i.id))}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+          </CardContent></Card>
+        ))}
+      </div>
     </div>
   );
 }

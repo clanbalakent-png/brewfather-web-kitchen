@@ -1,140 +1,60 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Star, Clock, MoreHorizontal } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Copy, Plus, Search, Trash2 } from "lucide-react";
+import { recipeStats, srmToHex } from "@/lib/recipe-calc";
+import { allStyles, fmt, money, uid, useRecipes } from "@/lib/store";
 
 export default function RecipesPage() {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const recipes = [
-    {
-      id: 1,
-      name: "IPA Tropical",
-      style: "American IPA",
-      abv: 6.2,
-      ibu: 65,
-      srm: 6,
-      rating: 4.5,
-      brews: 3,
-      lastBrewed: "2024-01-15"
-    },
-    {
-      id: 2,
-      name: "Porter Chocolate",
-      style: "Robust Porter",
-      abv: 5.8,
-      ibu: 35,
-      srm: 35,
-      rating: 4.8,
-      brews: 5,
-      lastBrewed: "2024-01-10"
-    },
-    {
-      id: 3,
-      name: "Wheat Alemã",
-      style: "Hefeweizen",
-      abv: 5.0,
-      ibu: 12,
-      srm: 4,
-      rating: 4.2,
-      brews: 2,
-      lastBrewed: "2024-01-20"
-    }
-  ];
-
-  const filteredRecipes = recipes.filter(recipe =>
-    recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    recipe.style.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [recipes, save] = useRecipes();
+  const [q, setQ] = useState("");
+  const styles = allStyles();
+  const list = recipes.filter(r => r.name.toLowerCase().includes(q.toLowerCase()));
+  const duplicate = (id: string) => { const r = recipes.find(x => x.id === id)!; save([...recipes, { ...structuredClone(r), id: uid(), name: `${r.name} (cópia)` }]); };
+  const remove = (id: string) => { if (confirm("Excluir esta receita?")) save(recipes.filter(r => r.id !== id)); };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Receitas</h1>
-          <p className="text-muted-foreground">Gerencie suas receitas de cerveja</p>
-        </div>
-        <Button 
-          onClick={() => navigate("/recipes/new")}
-          className="bg-gradient-primary hover:bg-primary-glow text-primary-foreground shadow-brew"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Receita
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h1 className="text-3xl font-bold text-foreground">Receitas</h1><p className="text-muted-foreground">{recipes.length} receita(s)</p></div>
+        <Button onClick={() => navigate("/recipes/new")} className="bg-gradient-primary text-primary-foreground shadow-brew"><Plus className="h-4 w-4 mr-2" />Nova Receita</Button>
       </div>
-
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar receitas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border-border"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRecipes.map((recipe) => (
-          <Card key={recipe.id} className="shadow-foam border-border/50 hover:shadow-brew transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg text-foreground">{recipe.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{recipe.style}</p>
+      <div className="relative max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input className="pl-9" placeholder="Buscar receitas..." value={q} onChange={e => setQ(e.target.value)} /></div>
+      {list.length === 0 && <p className="text-muted-foreground">Nenhuma receita encontrada.</p>}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {list.map(r => {
+          const s = recipeStats(r);
+          const style = styles.find(x => x.code === r.styleCode);
+          return (
+            <Card key={r.id} className="shadow-card hover:shadow-brew transition-shadow cursor-pointer" onClick={() => navigate(`/recipes/${r.id}`)}>
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full border border-border shrink-0" style={{ background: srmToHex(s.srm) }} />
+                    <div><CardTitle className="text-lg">{r.name}</CardTitle><p className="text-sm text-muted-foreground">{style?.name ?? "Sem estilo"}</p></div>
+                  </div>
+                  <div className="flex" onClick={e => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" aria-label="Duplicar" onClick={() => duplicate(r.id)}><Copy className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
                 </div>
-                <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-sm text-muted-foreground">ABV</p>
-                  <p className="font-semibold text-accent">{recipe.abv}%</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-4 gap-2 text-center text-sm">
+                  <div><div className="font-bold">{fmt(s.og, 3)}</div><div className="text-xs text-muted-foreground">OG</div></div>
+                  <div><div className="font-bold">{fmt(s.abv)}%</div><div className="text-xs text-muted-foreground">ABV</div></div>
+                  <div><div className="font-bold">{fmt(s.ibu, 0)}</div><div className="text-xs text-muted-foreground">IBU</div></div>
+                  <div><div className="font-bold">{fmt(s.srm)}</div><div className="text-xs text-muted-foreground">SRM</div></div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">IBU</p>
-                  <p className="font-semibold text-accent">{recipe.ibu}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">SRM</p>
-                  <p className="font-semibold text-accent">{recipe.srm}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                  <span className="text-sm font-medium">{recipe.rating}</span>
-                </div>
-                <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
-                  {recipe.brews} lotes
-                </Badge>
-              </div>
-
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Clock className="h-4 w-4 mr-1" />
-                Última vez: {new Date(recipe.lastBrewed).toLocaleDateString('pt-BR')}
-              </div>
-
-              <div className="flex space-x-2 pt-2">
-                <Button size="sm" className="flex-1 bg-primary text-primary-foreground hover:bg-accent">
-                  Brassar
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1 border-border hover:bg-muted">
-                  Editar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="mt-3 flex justify-between text-xs text-muted-foreground"><span>{fmt(r.equipment.batchL)} L</span><Badge variant="secondary">{money(s.cost.total)}</Badge></div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
