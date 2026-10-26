@@ -18,12 +18,16 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Arquivos abertos direto do disco (file://) não têm servidor de rotas:
+// usamos HashRouter para que a navegação funcione com dois cliques no index.html.
+const Router = typeof window !== "undefined" && window.location.protocol === "file:" ? HashRouter : BrowserRouter;
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <Router>
         <Layout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
