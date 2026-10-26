@@ -1,3 +1,4 @@
+// @ts-expect-error bun test runtime types are not installed
 import { describe, expect, test } from "bun:test";
 import { applySalts, deductInventory, finalGravity, originalGravity, recipeCost, shoppingList, styleCheck, volumes, type InventoryItem, type Recipe } from "./recipe-calc";
 
