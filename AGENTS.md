@@ -1,4 +1,6 @@
 # Architecture
 - Keep brewing formulas and unit conversions in a pure calculation module, separate from calculator definitions and the React view, so numerical behavior can be tested independently.
 - Define calculator fields, defaults, validation limits and output labels in a typed registry so every calculator shares the same accessible form and result rendering.
-- Run numerical calculator tests with `bun test src/lib/brewing.test.ts`; these tests do not depend on the browser.
+- Run numerical calculator tests with `bun test src/lib/brewing.test.ts`; these tests do not depend on the browser.- Keep recipe, water, inventory, batch and report math in `src/lib/recipe-calc.ts` (pure, tested in `recipe-calc.test.ts`); the ingredient catalog and BJCP styles live in `src/lib/catalog.ts`.
+- Persist recipes, batches and inventory through the hooks in `src/lib/store.ts` (browser storage with a change event) so every page stays in sync.
+- Batches store a snapshot of their recipe so later recipe edits do not alter brewed history.

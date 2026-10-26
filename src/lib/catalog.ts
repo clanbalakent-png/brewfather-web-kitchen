@@ -5,7 +5,7 @@ export interface CatalogHop { name: string; alpha: number; origin: string; price
 export interface CatalogYeast { name: string; lab: string; attenuation: number; tempMin: number; tempMax: number; price: number }
 export interface CatalogMisc { name: string; use: string; price: number }
 
-// potential = SG points of 1 kg in 1 L at 100% efficiency (PPG × 8.3454); color in °L; price in R$/kg
+// potential = SG of 1 lb in 1 US gal at 100% efficiency (PPG as SG); color in °L; price in R$/kg
 export const fermentables: CatalogFermentable[] = [
   { name: "Pilsen", type: "grao", potential: 1.037, color: 1.8, price: 18 },
   { name: "Pale Ale", type: "grao", potential: 1.037, color: 3, price: 20 },

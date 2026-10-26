@@ -31,7 +31,8 @@ export function originalGravity(fermentables: RecipeFermentable[], eq: Equipment
   if (vol <= 0) return 1;
   const points = fermentables.reduce((sum, f) => {
     const eff = f.type === "grao" || f.type === "adjunto" ? eq.efficiency / 100 : 1;
-    return sum + (f.potential - 1) * 1000 * f.kg * eff;
+    // potential is SG per lb/gal (PPG); 1 kg/L = 8.3454 lb/gal
+    return sum + (f.potential - 1) * 1000 * 8.3454 * f.kg * eff;
   }, 0);
   return 1 + points / vol / 1000;
 }
