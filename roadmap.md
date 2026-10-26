@@ -1,4 +1,13 @@
-# Calculadoras
-- [x] Implementar cálculos cervejeiros, conversões e mostura com validação de entradas.
-- [x] Disponibilizar todas as calculadoras em Geral e Mostura.
-- [x] Executar testes numéricos e verificar o fluxo na tela.
+# Funções do Brewfather
+- [x] Editor de receitas com ingredientes e cálculos automáticos
+- [x] Perfis aplicados na receita
+- [x] Lotes ligados a receitas com etapas
+- [x] Dia de brassagem com cronômetros
+- [x] Medições e gráfico de fermentação
+- [x] Inventário real com baixa automática
+- [x] Catálogo de ingredientes
+- [x] Estilos BJCP com verificação
+- [x] Química da água
+- [x] Lista de compras
+- [x] Relatórios
+- [x] Custos por receita e lote
