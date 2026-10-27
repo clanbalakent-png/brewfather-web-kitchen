@@ -15,6 +15,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useSettings } from "@/lib/settings";
 import {
   Sidebar,
   SidebarContent,
@@ -52,6 +53,7 @@ const profileItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const [settings] = useSettings();
 
   const getNavClassName = (path: string) => {
     const isActive = location.pathname === path;
@@ -69,7 +71,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="text-accent font-medium">Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {mainItems.filter(item => item.url !== "/inventory" || settings.inventory).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink

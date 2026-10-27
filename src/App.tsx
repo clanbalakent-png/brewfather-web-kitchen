@@ -16,6 +16,7 @@ import WaterPage from "./components/WaterPage";
 import ReportsPage from "./components/ReportsPage";
 import SettingsPage from "./components/SettingsPage";
 import NotFound from "./pages/NotFound";
+import { SettingsTheme } from "./lib/settings";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const Router = typeof window !== "undefined" && window.location.protocol === "fi
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <SettingsTheme />
       <Toaster />
       <Sonner />
       <Router>

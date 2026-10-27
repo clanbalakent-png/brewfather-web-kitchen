@@ -1,5 +1,6 @@
 /** Pure recipe, water, inventory and report calculations. Units: kg, g, L, °C, SG. */
-import { ibuTinseth } from "./brewing";
+import { alcohol, ibuTinseth } from "./brewing";
+import { calculateAbv, defaultSettings, type AppSettings } from "./settings-model";
 import type { BjcpStyle } from "./catalog";
 
 export type HopUse = "fervura" | "whirlpool" | "dryhop" | "primeiro_mosto";
@@ -42,11 +43,16 @@ export function finalGravity(og: number, yeasts: RecipeYeast[]) {
   return 1 + (og - 1) * (1 - att / 100);
 }
 
-export function recipeIbu(hops: RecipeHop[], og: number, eq: Equipment) {
+export function recipeIbu(hops: RecipeHop[], og: number, eq: Equipment, formula: AppSettings["ibuFormula"] = "tinseth") {
   const vol = volumes(eq).postBoil;
   return hops.reduce((sum, h) => {
     if (h.use === "dryhop") return sum;
     const minutes = h.use === "primeiro_mosto" ? eq.boilMinutes + 20 : h.use === "whirlpool" ? Math.min(h.minutes, 30) * 0.5 : h.minutes;
+    if (vol <= 0) return sum;
+    if (formula === "rager") {
+      const utilization = (18.11 + 13.86 * Math.tanh((minutes - 31.32) / 18.27)) / 100;
+      return sum + utilization * h.grams * h.alpha * 10 / (vol * (1 + Math.max(0, (og - 1.05) / 0.2)));
+    }
     return sum + ibuTinseth(h.grams, h.alpha, minutes, vol, og);
   }, 0);
 }
@@ -66,13 +72,21 @@ export function recipeCost(r: Pick<Recipe, "fermentables" | "hops" | "yeasts" | 
   return { fermentables, hops, yeasts, miscs, total: fermentables + hops + yeasts + miscs };
 }
 
-export function recipeStats(r: Recipe) {
+export function recipeStats(r: Recipe, settings: AppSettings = defaultSettings) {
   const og = originalGravity(r.fermentables, r.equipment);
-  const fg = finalGravity(og, r.yeasts);
+  const baseFg = finalGravity(og, r.yeasts);
+  const saccharification = r.mashSteps.filter(s => s.tempC >= 55 && s.tempC <= 75 && s.minutes > 0);
+  const mashMinutes = saccharification.reduce((sum, s) => sum + s.minutes, 0);
+  const mashTemp = mashMinutes ? saccharification.reduce((sum, s) => sum + s.tempC * s.minutes, 0) / mashMinutes : settings.mashReference;
+  const fg = settings.fgFormula === "mash" ? Math.min(og, Math.max(1, baseFg + (og - 1) * (mashTemp - settings.mashReference) * settings.mashAdjustment / 100)) : baseFg;
+  const ibu = recipeIbu(r.hops, og, r.equipment, settings.ibuFormula);
+  const buGu = og > 1 ? ibu / ((og - 1) * 1000) : 0;
+  const attenuation = og > 1 ? (og - fg) / (og - 1) : 0;
   const cost = recipeCost(r);
   const vol = volumes(r.equipment);
   return {
-    og, fg, abv: (og - fg) * 131.25, ibu: recipeIbu(r.hops, og, r.equipment), srm: recipeSrm(r.fermentables, r.equipment),
+    og, fg, abv: calculateAbv(og, fg, settings.abvFormula), ibu, srm: recipeSrm(r.fermentables, r.equipment),
+    buGu, rbr: buGu * (1 + attenuation - 0.765), calories: alcohol(og, fg, 100).calories,
     grainKg: r.fermentables.reduce((s, f) => s + f.kg, 0), volumes: vol, cost, costPerLiter: vol.packaged > 0 ? cost.total / vol.packaged : 0,
   };
 }
@@ -164,11 +178,14 @@ export function shoppingList(r: Recipe, inv: InventoryItem[]) {
   });
 }
 
-export function deductInventory(r: Recipe, inv: InventoryItem[]): InventoryItem[] {
+export function deductInventory(r: Recipe, inv: InventoryItem[], allowNegative = false): InventoryItem[] {
   const next = inv.map(i => ({ ...i }));
   for (const req of recipeRequirements(r)) {
     const item = findItem(next, req.kind, req.name);
-    if (item) item.amount = Math.max(0, Math.round((item.amount - req.amount) * 1000) / 1000);
+    if (item) {
+      const amount = Math.round((item.amount - req.amount) * 1000) / 1000;
+      item.amount = allowNegative ? amount : Math.max(0, amount);
+    } else if (allowNegative) next.push({ id: `missing-${req.kind}-${req.name}`, ...req, amount: -req.amount, minAmount: 0 });
   }
   return next;
 }
@@ -184,13 +201,14 @@ export interface Batch {
   id: string; number: number; name: string; recipeId: string; recipe: Recipe; status: BatchStatus;
   brewDate: string; measuredOg?: number; measuredFg?: number; measuredVolumeL?: number;
   measurements: Measurement[]; notes: string; inventoryDeducted: boolean; createdAt: string;
+  additionalMeasurements?: Record<string, number>;
 }
 
-export function batchAbv(b: Batch) {
-  const og = b.measuredOg ?? recipeStats(b.recipe).og;
+export function batchAbv(b: Batch, settings: AppSettings = defaultSettings) {
+  const og = b.measuredOg ?? recipeStats(b.recipe, settings).og;
   const last = [...b.measurements].sort((a, c) => a.date.localeCompare(c.date)).at(-1);
   const fg = b.measuredFg ?? last?.sg;
-  return fg ? (og - fg) * 131.25 : undefined;
+  return fg ? calculateAbv(og, fg, settings.abvFormula) : undefined;
 }
 
 /** Boil-timer events: hop/misc additions sorted by minutes remaining. */
