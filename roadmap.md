@@ -11,3 +11,9 @@
 - [x] Lista de compras
 - [x] Relatórios
 - [x] Custos por receita e lote
+
+# Configurações das capturas
+- [ ] Preferências locais, tema, fórmulas e unidades
+- [ ] Aplicar preferências em receitas, lotes e estoque
+- [ ] Backup com preferências, histórico local e redefinição
+- [ ] Verificar cálculos e fluxo das configurações
