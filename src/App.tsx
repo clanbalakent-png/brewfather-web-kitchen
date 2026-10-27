@@ -14,6 +14,7 @@ import ProfilesPage from "./components/ProfilesPage";
 import BatchDetailPage from "./components/BatchDetailPage";
 import WaterPage from "./components/WaterPage";
 import ReportsPage from "./components/ReportsPage";
+import SettingsPage from "./components/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
