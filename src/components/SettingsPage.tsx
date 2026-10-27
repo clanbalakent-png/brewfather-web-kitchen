@@ -86,7 +86,6 @@ export default function SettingsPage() {
   const clearAll = () => {
     if (!window.confirm("Apagar TODOS os dados deste navegador (receitas, lotes, inventário e perfis)? Recomendo exportar um backup antes.")) return;
     writeAll(Object.fromEntries(Object.keys(STORAGE_KEYS).map((k) => [k, []])));
-    localStorage.removeItem("brewfather-seeded");
     setCounts(readAll());
     setImportMsg({ ok: true, text: "Todos os dados foram apagados." });
   };
