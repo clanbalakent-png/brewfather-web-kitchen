@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Upload, Trash2, Database, CheckCircle2 } from "lucide-react";
-import { read, write } from "@/lib/store";
 
 const STORAGE_KEYS = {
   receitas: "brewfather-recipes",
