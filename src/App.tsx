@@ -44,7 +44,7 @@ const App = () => (
             <Route path="/water" element={<WaterPage />} />
             <Route path="/fermentation" element={<Navigate to="/profiles/fermentacao" replace />} />
             <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/settings" element={<div className="text-center py-12"><h2 className="text-2xl font-bold text-foreground">Configurações</h2><p className="text-muted-foreground">Em desenvolvimento</p></div>} />
+            <Route path="/settings" element={<SettingsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
