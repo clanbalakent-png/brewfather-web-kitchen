@@ -8,9 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { batchAbv, batchStatuses } from "@/lib/recipe-calc";
+import { useSettings } from "@/lib/settings";
 import { fmt, uid, useBatches, useRecipes } from "@/lib/store";
 
 export default function BatchesPage() {
+  const [settings] = useSettings();
+  const locale = settings.language || "pt-BR";
   const navigate = useNavigate();
   const [batches, saveBatches] = useBatches();
   const [recipes] = useRecipes();
@@ -52,10 +55,10 @@ export default function BatchesPage() {
           return (
             <Card key={b.id} className="shadow-card hover:shadow-brew cursor-pointer" onClick={() => navigate(`/batches/${b.id}`)}>
               <CardHeader className="pb-2"><div className="flex justify-between gap-2"><CardTitle className="text-lg">#{b.number} {b.name}</CardTitle><Badge>{batchStatuses[idx].label}</Badge></div>
-                <p className="text-sm text-muted-foreground">Brassagem: {new Date(b.brewDate + "T12:00").toLocaleDateString("pt-BR")}</p></CardHeader>
+                <p className="text-sm text-muted-foreground">Brassagem: {new Date(b.brewDate + "T12:00").toLocaleDateString(locale)}</p></CardHeader>
               <CardContent className="space-y-2">
                 <Progress value={(idx / (batchStatuses.length - 1)) * 100} />
-                <div className="flex justify-between text-sm text-muted-foreground"><span>{b.measurements.length} medição(ões)</span><span>{abv !== undefined ? `${fmt(abv)}% ABV` : "ABV —"}</span></div>
+                <div className="flex justify-between text-sm text-muted-foreground"><span>{b.measurements.length} medição(ões)</span><span>{abv !== undefined ? `${fmt(abv, 1, locale)}% ABV` : "ABV —"}</span></div>
               </CardContent>
             </Card>
           );

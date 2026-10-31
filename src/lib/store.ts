@@ -1,6 +1,7 @@
 /** Browser-local persistence for recipes, batches and inventory, with cross-component sync. */
 import { useCallback, useEffect, useState } from "react";
 import { defaultEquipment, type Batch, type InventoryItem, type Recipe } from "./recipe-calc";
+import { getLocale, readSettings } from "./settings";
 
 const KEYS = { recipes: "brewfather-recipes", batches: "brewfather-batches", inventory: "brewfather-inventory" } as const;
 type Key = keyof typeof KEYS;
@@ -66,8 +67,8 @@ export function readProfiles(slug: "equipamento" | "mostura" | "fermentacao" | "
   try { return JSON.parse(localStorage.getItem(`brewfather-profiles-${slug}`) || "[]"); } catch { return []; }
 }
 
-export const fmt = (v: number, d = 1) => v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
-export const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const fmt = (v: number, d = 1, locale = getLocale(readSettings())) => Number(v).toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d });
+export const money = (v: number, locale = getLocale(readSettings())) => new Intl.NumberFormat(locale, { style: "currency", currency: "BRL" }).format(v);
 
 import { bjcpStyles, type BjcpStyle } from "./catalog";
 const num = (v: string | undefined, d = 0) => { const n = Number((v ?? "").replace(",", ".")); return Number.isFinite(n) && v !== "" && v !== undefined ? n : d; };

@@ -16,7 +16,7 @@ export function readBackupData(): BackupData {
     try { const value = JSON.parse(localStorage.getItem(key) || "[]"); return [name, Array.isArray(value) ? value : []]; } catch { return [name, []]; }
   }));
 }
-export const makeBackup = () => ({ app: "brewfather-web", version: 2, exportedAt: new Date().toISOString(), data: readBackupData(), settings: readSettings() });
+export const makeBackup = () => ({ app: "brewcraft-web", version: 2, exportedAt: new Date().toISOString(), data: readBackupData(), settings: readSettings() });
 export type BackupPayload = ReturnType<typeof makeBackup>;
 const HISTORY = "brewfather-backup-history";
 export function readHistory(): { id: string; label: string; payload: BackupPayload }[] {

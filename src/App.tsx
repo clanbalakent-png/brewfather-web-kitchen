@@ -14,15 +14,22 @@ import ProfilesPage from "./components/ProfilesPage";
 import BatchDetailPage from "./components/BatchDetailPage";
 import WaterPage from "./components/WaterPage";
 import ReportsPage from "./components/ReportsPage";
+import StylesPage from "./components/StylesPage";
+import StyleDetailPage from "./components/StyleDetailPage";
+import BrewDayPage from "./components/BrewDayPage";
 import SettingsPage from "./components/SettingsPage";
 import NotFound from "./pages/NotFound";
 import { SettingsTheme } from "./lib/settings";
 
 const queryClient = new QueryClient();
 
-// Arquivos abertos direto do disco (file://) não têm servidor de rotas:
-// usamos HashRouter para que a navegação funcione com dois cliques no index.html.
-const Router = typeof window !== "undefined" && window.location.protocol === "file:" ? HashRouter : BrowserRouter;
+// Em hospedagens estáticas como GitHub Pages e em arquivos abertos direto do disco,
+// o BrowserRouter pode quebrar por causa de rotas sem fallback do servidor.
+// Usamos HashRouter nesses cenários para manter a navegação estável.
+const Router = typeof window !== "undefined" &&
+  (window.location.protocol === "file:" || window.location.hostname.endsWith("github.io"))
+  ? HashRouter
+  : BrowserRouter;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -41,9 +48,15 @@ const App = () => (
             <Route path="/batches/:id" element={<BatchDetailPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/calculators" element={<CalculatorsPage />} />
+            <Route path="/brew-day" element={<BrewDayPage />} />
+            <Route path="/brewday" element={<BrewDayPage />} />
             <Route path="/profiles" element={<ProfilesPage />} />
             <Route path="/profiles/:type" element={<ProfilesPage />} />
             <Route path="/water" element={<WaterPage />} />
+            <Route path="/styles" element={<StylesPage />} />
+            <Route path="/styles/:code" element={<StyleDetailPage />} />
+            <Route path="/estilos" element={<StylesPage />} />
+            <Route path="/estilos/:code" element={<StyleDetailPage />} />
             <Route path="/fermentation" element={<Navigate to="/profiles/fermentacao" replace />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />

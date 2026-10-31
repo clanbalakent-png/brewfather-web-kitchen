@@ -18,6 +18,8 @@ function Row({ label, description, icon: Icon = SlidersHorizontal, children }: {
 export default function SettingsPreferences() {
   const [s, save] = useSettings();
   const [dialog, setDialog] = useState<"mash" | "measurements" | null>(null);
+  const isEnglish = s.language === "en-US";
+  const t = (pt: string, en: string) => (isEnglish ? en : pt);
   const select = (key: keyof AppSettings, label: string, options: [string, string][]) => <Select value={String(s[key])} onValueChange={v => save({ [key]: v })}><SelectTrigger aria-label={label} className="w-40 max-w-full"><SelectValue /></SelectTrigger><SelectContent>{options.map(([v, text]) => <SelectItem key={v} value={v}>{text}</SelectItem>)}</SelectContent></Select>;
   const toggle = (key: keyof AppSettings, label: string) => <Switch aria-label={label} checked={s[key] === true} onCheckedChange={v => save({ [key]: v })} />;
   const segmented = (key: keyof AppSettings, label: string, options: [string, string][]) => <div className="flex flex-wrap gap-1" role="group" aria-label={label}>{options.map(([v, text]) => <Button key={v} size="sm" variant={s[key] === v ? "default" : "outline"} aria-pressed={s[key] === v} onClick={() => save({ [key]: v })}>{text}</Button>)}</div>;
@@ -25,49 +27,49 @@ export default function SettingsPreferences() {
   return <>
     <div className="grid items-start gap-5 xl:grid-cols-2">
       <div className="space-y-5">
-        <Section title="Geral">
-          <Row label="Próximo Lote #" icon={Beaker}><Input aria-label="Próximo Lote" type="number" min={1} step={1} className="w-24" value={s.nextBatch} onChange={e => save({ nextBatch: Number(e.target.value) })} /></Row>
-          <Row label="Idioma" icon={Globe}><span className="text-sm text-muted-foreground">Português (Brasil)</span></Row>
-          <Row label="Tema" icon={Palette}>{select("theme", "Tema", [["system", "Automático"], ["light", "Claro"], ["dark", "Escuro"]])}</Row>
+        <Section title={t("Geral", "General")}>
+          <Row label={t("Próximo Lote #", "Next Batch #")} icon={Beaker}><Input aria-label={t("Próximo Lote", "Next Batch")} type="number" min={1} step={1} className="w-24" value={s.nextBatch} onChange={e => save({ nextBatch: Number(e.target.value) })} /></Row>
+          <Row label={t("Idioma", "Language")} icon={Globe}>{select("language", t("Idioma", "Language"), [["pt-BR", "Português (Brasil)"], ["en-US", "English (US)"], ["es-ES", "Español"], ["fr-FR", "Français"], ["de-DE", "Deutsch"]])}</Row>
+          <Row label={t("Tema", "Theme")} icon={Palette}>{select("theme", t("Tema", "Theme"), [["system", t("Automático", "Automatic")], ["light", t("Claro", "Light")], ["dark", t("Escuro", "Dark")]])}</Row>
         </Section>
-        <Section title="Fórmulas">
-          <Row label="Álcool por Volume" icon={Calculator}>{select("abvFormula", "Álcool por Volume", [["standard", "Padrão"], ["alternative", "Alternativa"]])}</Row>
-          <Row label="Densidade Final" description="Estimativa pela atenuação da levedura; ajuste opcional pela temperatura de mostura." icon={Calculator}>{select("fgFormula", "Densidade Final", [["normal", "Normal"], ["mash", "Temperatura da mostura"]])}</Row>
-          <Row label="Fórmula do IBU" icon={Calculator}>{select("ibuFormula", "Fórmula do IBU", [["tinseth", "Tinseth"], ["rager", "Rager"]])}</Row>
+        <Section title={t("Fórmulas", "Formulas")}>
+          <Row label={t("Álcool por Volume", "ABV")} icon={Calculator}>{select("abvFormula", t("Álcool por Volume", "ABV"), [["standard", t("Padrão", "Standard")], ["alternative", t("Alternativa", "Alternative")]])}</Row>
+          <Row label={t("Densidade Final", "Final Gravity")} description={t("Estimativa pela atenuação da levedura; ajuste opcional pela temperatura de mostura.", "Estimate based on yeast attenuation; optional mash-temperature adjustment.")} icon={Calculator}>{select("fgFormula", t("Densidade Final", "Final Gravity"), [["normal", t("Normal", "Normal")], ["mash", t("Temperatura da mostura", "Mash temperature")]])}</Row>
+          <Row label={t("Fórmula do IBU", "IBU Formula")} icon={Calculator}>{select("ibuFormula", t("Fórmula do IBU", "IBU Formula"), [["tinseth", "Tinseth"], ["rager", "Rager"]])}</Row>
         </Section>
-        <Section title="Recursos">
-          <Row label="Monitoramento da Brassagem" icon={Thermometer}>{toggle("brewMonitoring", "Monitoramento da Brassagem")}</Row>
-          <Row label="Estoque" icon={Package}>{toggle("inventory", "Estoque")}</Row>
-          <Row label="Permitir estoque negativo" description="O valor do estoque pode ser negativo." icon={Package}>{toggle("negativeStock", "Permitir estoque negativo")}</Row>
-          <Row label="Informação Nutricional" icon={FlaskConical}>{toggle("nutrition", "Informação Nutricional")}</Row>
+        <Section title={t("Recursos", "Features")}>
+          <Row label={t("Monitoramento da Brassagem", "Brew monitoring")} icon={Thermometer}>{toggle("brewMonitoring", t("Monitoramento da Brassagem", "Brew monitoring"))}</Row>
+          <Row label={t("Estoque", "Inventory")} icon={Package}>{toggle("inventory", t("Estoque", "Inventory"))}</Row>
+          <Row label={t("Permitir estoque negativo", "Allow negative inventory")} description={t("O valor do estoque pode ser negativo.", "Inventory can go below zero.")} icon={Package}>{toggle("negativeStock", t("Permitir estoque negativo", "Allow negative inventory"))}</Row>
+          <Row label={t("Informação Nutricional", "Nutrition info")} icon={FlaskConical}>{toggle("nutrition", t("Informação Nutricional", "Nutrition info"))}</Row>
         </Section>
-        <Section title="Configurador de Receitas">
-          <Row label="Salvar Receitas Automaticamente" icon={Save}>{toggle("autoSave", "Salvar Receitas Automaticamente")}</Row>
-          <Row label="Rampa de temperatura de mostura" description="Ajuste da estimativa de densidade final.">{<Button size="sm" variant="outline" onClick={() => setDialog("mash")}>Configurar</Button>}</Row>
-          <Row label="Guia de estilo BU/GU">{toggle("buGu", "Guia de estilo BU/GU")}</Row>
-          <Row label="Guia de estilo RBR">{toggle("rbr", "Guia de estilo RBR")}</Row>
+        <Section title={t("Configurador de Receitas", "Recipe Builder")}>
+          <Row label={t("Salvar Receitas Automaticamente", "Auto-save recipes")} icon={Save}>{toggle("autoSave", t("Salvar Receitas Automaticamente", "Auto-save recipes"))}</Row>
+          <Row label={t("Rampa de temperatura de mostura", "Mash temperature ramp")} description={t("Ajuste da estimativa de densidade final.", "Adjust final-gravity estimate.")}>{<Button size="sm" variant="outline" onClick={() => setDialog("mash")}>{t("Configurar", "Configure")}</Button>}</Row>
+          <Row label={t("Guia de estilo BU/GU", "BU/GU style guide")}>{toggle("buGu", t("Guia de estilo BU/GU", "BU/GU style guide"))}</Row>
+          <Row label={t("Guia de estilo RBR", "RBR style guide")}>{toggle("rbr", t("Guia de estilo RBR", "RBR style guide"))}</Row>
         </Section>
-        <Section title="Configuração do Lote"><Row label="Valores adicionais medidos" icon={Beaker}><Button variant="outline" size="sm" onClick={() => setDialog("measurements")}>Configurar</Button></Row></Section>
+        <Section title={t("Configuração do Lote", "Batch Setup")}><Row label={t("Valores adicionais medidos", "Additional measured values")} icon={Beaker}><Button variant="outline" size="sm" onClick={() => setDialog("measurements")}>{t("Configurar", "Configure")}</Button></Row></Section>
       </div>
       <div className="space-y-5">
-        <Section title="Unidades">
-          <div className="flex flex-wrap gap-2 py-3" role="group" aria-label="Sistema de unidades">{[["metric", "Métrica"], ["imperial", "Imperial"], ["us", "US"]].map(([id, text]) => <Button key={id} size="sm" variant="outline" onClick={() => preset(id as "metric" | "imperial" | "us")}>{text}</Button>)}</div>
-          <Row label="Exibir Densidade" icon={Ruler}>{select("gravity", "Exibir Densidade", [["sg", "SG (1.XXX)"], ["plato", "Plato (°P)"]])}</Row>
-          <Row label="Formato da Densidade Específica" icon={Ruler}>{select("sgFormat", "Formato da Densidade Específica", [["decimal", "SG (1.XXX)"], ["points", "Pontos (XX)"]])}</Row>
-          <Row label="Cor Padrão">{segmented("color", "Cor Padrão", [["ebc", "EBC"], ["srm", "SRM"]])}</Row>
-          <Row label="Cor dos Grãos">{select("grainColor", "Cor dos Grãos", [["lovibond", "Padrão (°L)"], ["srm", "SRM"], ["ebc", "EBC"]])}</Row>
-          <Row label="Temperatura" icon={Thermometer}>{segmented("temperature", "Temperatura", [["°F", "°F"], ["°C", "°C"]])}</Row>
-          <Row label="Volume" icon={Ruler}>{select("volume", "Volume", [["L", "Litros"], ["gal (US)", "Galões US"], ["gal (UK)", "Galões Imperial"]])}</Row>
-          <Row label="Peso" icon={Ruler}>{select("weight", "Peso", [["kg", "KG"], ["lb", "Libra"]])}</Row>
-          <Row label="Lúpulo" icon={Ruler}>{select("hopWeight", "Lúpulo", [["g", "Grama"], ["oz", "Onça"]])}</Row>
-          <Row label="Carbonatação">{select("carbonation", "Carbonatação", [["vol", "CO₂-vol"], ["g/L", "g/L"]])}</Row>
-          <Row label="Pressão">{select("pressure", "Pressão", [["bar", "Bar"], ["psi", "PSI"], ["kPa", "kPa"]])}</Row>
-          <Row label="Altitude">{select("altitude", "Altitude", [["m", "Metros"], ["ft", "Pés"]])}</Row>
-          <Row label="Poder Diastático">{select("diastatic", "Poder Diastático", [["lintner", "°Lintner"], ["wk", "°WK"]])}</Row>
+        <Section title={t("Unidades", "Units")}>
+          <div className="flex flex-wrap gap-2 py-3" role="group" aria-label={t("Sistema de unidades", "Unit system")}>{[["metric", t("Métrica", "Metric")], ["imperial", "Imperial"], ["us", "US"]].map(([id, text]) => <Button key={id} size="sm" variant="outline" onClick={() => preset(id as "metric" | "imperial" | "us")}>{text}</Button>)}</div>
+          <Row label={t("Exibir Densidade", "Display gravity")} icon={Ruler}>{select("gravity", t("Exibir Densidade", "Display gravity"), [["sg", "SG (1.XXX)"], ["plato", "Plato (°P)"]])}</Row>
+          <Row label={t("Formato da Densidade Específica", "Specific gravity format")} icon={Ruler}>{select("sgFormat", t("Formato da Densidade Específica", "Specific gravity format"), [["decimal", "SG (1.XXX)"], ["points", "Pontos (XX)"]])}</Row>
+          <Row label={t("Cor Padrão", "Default color")}>{segmented("color", t("Cor Padrão", "Default color"), [["ebc", "EBC"], ["srm", "SRM"]])}</Row>
+          <Row label={t("Cor dos Grãos", "Grain color")}>{select("grainColor", t("Cor dos Grãos", "Grain color"), [["lovibond", t("Padrão (°L)", "Default (°L)")], ["srm", "SRM"], ["ebc", "EBC"]])}</Row>
+          <Row label={t("Temperatura", "Temperature")} icon={Thermometer}>{segmented("temperature", t("Temperatura", "Temperature"), [["°F", "°F"], ["°C", "°C"]])}</Row>
+          <Row label={t("Volume", "Volume")} icon={Ruler}>{select("volume", t("Volume", "Volume"), [["L", "Litros"], ["gal (US)", "Galões US"], ["gal (UK)", "Galões Imperial"]])}</Row>
+          <Row label={t("Peso", "Weight")} icon={Ruler}>{select("weight", t("Peso", "Weight"), [["kg", "KG"], ["lb", "Libra"]])}</Row>
+          <Row label={t("Lúpulo", "Hop")} icon={Ruler}>{select("hopWeight", t("Lúpulo", "Hop"), [["g", "Grama"], ["oz", "Onça"]])}</Row>
+          <Row label={t("Carbonatação", "Carbonation")}>{select("carbonation", t("Carbonatação", "Carbonation"), [["vol", "CO₂-vol"], ["g/L", "g/L"]])}</Row>
+          <Row label={t("Pressão", "Pressure")}>{select("pressure", t("Pressão", "Pressure"), [["bar", "Bar"], ["psi", "PSI"], ["kPa", "kPa"]])}</Row>
+          <Row label={t("Altitude", "Altitude")}>{select("altitude", t("Altitude", "Altitude"), [["m", "Metros"], ["ft", "Pés"]])}</Row>
+          <Row label={t("Poder Diastático", "Diastatic power")}>{select("diastatic", t("Poder Diastático", "Diastatic power"), [["lintner", "°Lintner"], ["wk", "°WK"]])}</Row>
         </Section>
-        <Section title="Data & Hora">
-          <Row label="Data de Entrada" icon={Calendar}>{select("dateFormat", "Data de Entrada", [["auto", "Automático"], ["dmy", "DD/MM/AAAA"], ["mdy", "MM/DD/AAAA"], ["iso", "AAAA-MM-DD"]])}</Row>
-          <Row label="Horário de Entrada" icon={Calendar}>{select("timeFormat", "Horário de Entrada", [["auto", "Automático"], ["24", "24 horas"], ["12", "12 horas"]])}</Row>
+        <Section title={t("Data & Hora", "Date & Time")}>
+          <Row label={t("Data de Entrada", "Entry date")} icon={Calendar}>{select("dateFormat", t("Data de Entrada", "Entry date"), [["auto", t("Automático", "Automatic")], ["dmy", "DD/MM/AAAA"], ["mdy", "MM/DD/AAAA"], ["iso", "AAAA-MM-DD"]])}</Row>
+          <Row label={t("Horário de Entrada", "Entry time")} icon={Calendar}>{select("timeFormat", t("Horário de Entrada", "Entry time"), [["auto", t("Automático", "Automatic")], ["24", "24 horas"], ["12", "12 horas"]])}</Row>
         </Section>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { convertUnit, sgToPlato, platoToSg } from "./brewing";
 
 export interface AppSettings {
+  language: "pt-BR" | "en-US" | "es-ES" | "fr-FR" | "de-DE";
   theme: "light" | "dark" | "system";
   nextBatch: number;
   abvFormula: "standard" | "alternative";
@@ -33,7 +34,7 @@ export interface AppSettings {
 }
 
 export const defaultSettings: AppSettings = {
-  theme: "light", nextBatch: 1, abvFormula: "standard", fgFormula: "normal", ibuFormula: "tinseth",
+  language: "pt-BR", theme: "dark", nextBatch: 1, abvFormula: "standard", fgFormula: "normal", ibuFormula: "tinseth",
   inventory: true, negativeStock: false, brewMonitoring: true, nutrition: false, autoSave: false,
   buGu: true, rbr: false, gravity: "sg", sgFormat: "decimal", color: "srm", grainColor: "lovibond",
   temperature: "°C", volume: "L", weight: "kg", hopWeight: "g", carbonation: "vol", pressure: "bar",
@@ -54,6 +55,7 @@ export function normalizeSettings(value: unknown): AppSettings {
   const out = { ...defaultSettings };
   const input = value as Record<string, unknown>;
   const choices: Partial<Record<keyof AppSettings, readonly string[]>> = {
+    language: ["pt-BR", "en-US", "es-ES", "fr-FR", "de-DE"],
     theme: ["light", "dark", "system"], abvFormula: ["standard", "alternative"], fgFormula: ["normal", "mash"], ibuFormula: ["tinseth", "rager"], gravity: ["sg", "plato"], sgFormat: ["decimal", "points"], color: ["srm", "ebc"], grainColor: ["lovibond", "srm", "ebc"], temperature: ["°C", "°F"], volume: ["L", "gal (US)", "gal (UK)"], weight: ["kg", "lb"], hopWeight: ["g", "oz"], carbonation: ["vol", "g/L"], pressure: ["bar", "psi", "kPa"], altitude: ["m", "ft"], diastatic: ["lintner", "wk"], dateFormat: ["auto", "dmy", "mdy", "iso"], timeFormat: ["auto", "12", "24"],
   };
   for (const key of Object.keys(out) as (keyof AppSettings)[]) {

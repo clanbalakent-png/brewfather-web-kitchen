@@ -9,16 +9,14 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background text-foreground">
         <AppSidebar />
-        <main className="min-w-0 flex-1 flex flex-col">
-          <header className="h-16 border-b border-border bg-card shadow-foam flex items-center px-6">
-            <SidebarTrigger className="mr-4" />
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">B</span>
-              </div>
-              <h1 className="text-xl font-bold text-foreground">Brewfather</h1>
+        <main className="min-w-0 flex-1 flex flex-col bg-background">
+          <header className="sticky top-0 z-50 h-20 border-b border-border bg-[#eef3fb]/95 dark:bg-[#171b20]/95 flex items-center gap-3 px-6 shadow-[0_4px_18px_rgba(15,23,42,0.06)] backdrop-blur-sm">
+            <SidebarTrigger className="shrink-0 text-slate-700 hover:text-slate-900 dark:text-foreground/80 dark:hover:text-foreground" />
+            <div className="flex items-center gap-3">
+              <img src="./logo-transparent.png" alt="BrewCraft" className="h-16 w-auto object-contain" />
+              <span className="text-lg font-semibold tracking-[0.14em] text-slate-800 uppercase dark:text-foreground">BrewCraft</span>
             </div>
           </header>
           <div className="flex-1 p-6">

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Beaker, FileText, Package, TrendingUp, Calculator, Droplets } from "lucide-react";
+import { Plus, Beaker, FileText, Package, TrendingUp, Calculator, Droplets, Clock3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { batchStatuses, reportSummary } from "@/lib/recipe-calc";
 import { fmt, useBatches, useInventory, useRecipes } from "@/lib/store";
@@ -51,6 +51,7 @@ export default function Dashboard() {
             <Button onClick={() => navigate("/recipes/new")} className="bg-gradient-primary text-primary-foreground"><Plus className="h-4 w-4 mr-2" />Nova receita</Button>
             <Button variant="outline" onClick={() => navigate("/batches")}><Beaker className="h-4 w-4 mr-2" />Novo lote</Button>
             <Button variant="outline" onClick={() => navigate("/calculators")}><Calculator className="h-4 w-4 mr-2" />Calculadoras</Button>
+            <Button variant="outline" onClick={() => navigate("/brew-day")}><Clock3 className="h-4 w-4 mr-2" />Brew Day</Button>
             <Button variant="outline" onClick={() => navigate("/water")}><Droplets className="h-4 w-4 mr-2" />Química da água</Button>
           </CardContent>
         </Card>

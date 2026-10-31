@@ -10,6 +10,7 @@ import { ArrowLeft, Check, Pause, Play, RotateCcw, Trash2, PackageMinus } from "
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { batchAbv, batchStatuses, boilSchedule, deductInventory, recipeStats, type Batch } from "@/lib/recipe-calc";
+import { useSettings } from "@/lib/settings";
 import { fmt, uid, useBatches, useInventory } from "@/lib/store";
 
 const mmss = (s: number) => `${String(Math.floor(Math.max(0, s) / 60)).padStart(2, "0")}:${String(Math.floor(Math.max(0, s) % 60)).padStart(2, "0")}`;
@@ -81,6 +82,8 @@ function BrewDay({ b }: { b: Batch }) {
 }
 
 export default function BatchDetailPage() {
+  const [settings] = useSettings();
+  const locale = settings.language || "pt-BR";
   const { id } = useParams();
   const navigate = useNavigate();
   const [batches, saveBatches] = useBatches();
@@ -104,10 +107,10 @@ export default function BatchDetailPage() {
     setM({ ...m, sg: "", note: "" });
   };
   const sorted = [...b.measurements].sort((a, c) => a.date.localeCompare(c.date));
-  const chart = sorted.map(x => ({ data: new Date(x.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), SG: x.sg, Temp: x.tempC }));
+  const chart = sorted.map(x => ({ data: new Date(x.date).toLocaleDateString(locale, { day: "2-digit", month: "2-digit" }), SG: x.sg, Temp: x.tempC }));
   const abv = batchAbv(b);
   const dryHops = b.recipe.hops.filter(h => h.use === "dryhop");
-  const addDays = (d: number) => { const t = new Date(b.brewDate + "T12:00"); t.setDate(t.getDate() + d); return t.toLocaleDateString("pt-BR"); };
+  const addDays = (d: number) => { const t = new Date(b.brewDate + "T12:00"); t.setDate(t.getDate() + d); return t.toLocaleDateString(locale); };
   const numOrUndef = (v: string) => (v === "" ? undefined : Number(v.replace(",", ".")));
 
   return (
@@ -190,7 +193,7 @@ export default function BatchDetailPage() {
           <ul className="divide-y divide-border text-sm">
             {sorted.map(x => (
               <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <span>{new Date(x.date).toLocaleString("pt-BR")}</span><span className="font-mono">{x.sg.toFixed(3)}</span><span>{x.tempC}°C</span><span className="text-muted-foreground flex-1">{x.note}</span>
+                <span>{new Date(x.date).toLocaleString(locale)}</span><span className="font-mono">{x.sg.toFixed(3)}</span><span>{x.tempC}°C</span><span className="text-muted-foreground flex-1">{x.note}</span>
                 <Button variant="ghost" size="icon" aria-label="Remover medição" onClick={() => update({ measurements: b.measurements.filter(y => y.id !== x.id) })}><Trash2 className="h-4 w-4" /></Button>
               </li>
             ))}

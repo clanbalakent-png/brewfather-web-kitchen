@@ -13,6 +13,8 @@ import {
   Wrench,
   CookingPot,
   BookOpen,
+  Clock3,
+  Cloud,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSettings } from "@/lib/settings";
@@ -39,7 +41,7 @@ const mainItems = [
 
 const toolsItems = [
   { title: "Calculadoras", url: "/calculators", icon: Calculator },
-  { title: "Química da Água", url: "/water", icon: Droplets },
+  { title: "Estilos", url: "/profiles/estilos", icon: BookOpen },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
 ];
 
@@ -54,6 +56,30 @@ const profileItems = [
 export function AppSidebar() {
   const location = useLocation();
   const [settings] = useSettings();
+  const isEnglish = settings.language === "en-US";
+  const t = (pt: string, en: string) => (isEnglish ? en : pt);
+
+  const mainItems = [
+    { title: t("Dashboard", "Dashboard"), url: "/", icon: Home },
+    { title: t("Receitas", "Recipes"), url: "/recipes", icon: FileText },
+    { title: t("Lotes", "Batches"), url: "/batches", icon: Beaker },
+    { title: t("Inventário", "Inventory"), url: "/inventory", icon: Package },
+  ];
+
+  const toolsItems = [
+    { title: t("Calculadoras", "Calculators"), url: "/calculators", icon: Calculator },
+    { title: "Brew Day", url: "/brew-day", icon: Clock3 },
+    { title: t("Estilos", "Styles"), url: "/styles", icon: BookOpen },
+    { title: t("Relatórios", "Reports"), url: "/reports", icon: BarChart3 },
+  ];
+
+  const profileItems = [
+    { title: t("Equipamento", "Equipment"), url: "/profiles/equipamento", icon: Wrench },
+    { title: t("Mostura", "Mash"), url: "/profiles/mostura", icon: CookingPot },
+    { title: t("Fermentação", "Fermentation"), url: "/profiles/fermentacao", icon: Thermometer },
+    { title: t("Água", "Water"), url: "/profiles/agua", icon: Droplets },
+    { title: t("Estilos Personalizados", "Custom Styles"), url: "/profiles/estilos", icon: BookOpen },
+  ];
 
   const getNavClassName = (path: string) => {
     const isActive = location.pathname === path;
@@ -65,10 +91,10 @@ export function AppSidebar() {
   const profilesActive = location.pathname.startsWith("/profiles");
 
   return (
-    <Sidebar className="border-r border-border bg-card">
-      <SidebarContent>
+    <Sidebar className="border-r border-border bg-[#edf3fb] text-slate-800 dark:bg-[#171b20] dark:text-[#eaf1ff]">
+      <SidebarContent className="p-3">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-accent font-medium">Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-slate-500 dark:text-[#d9e7ff]/70 font-medium">{t("Principal", "Main")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.filter(item => item.url !== "/inventory" || settings.inventory).map((item) => (
@@ -89,7 +115,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-accent font-medium">Ferramentas</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-slate-500 dark:text-[#d9e7ff]/70 font-medium">{t("Ferramentas", "Tools")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {toolsItems.map((item) => (
@@ -110,7 +136,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild isActive={profilesActive}>
                   <NavLink to="/profiles/equipamento" className={profilesActive ? "bg-primary text-primary-foreground font-medium shadow-brew" : "hover:bg-muted text-muted-foreground hover:text-foreground"}>
                     <Layers className="h-4 w-4" />
-                    <span>Perfis</span>
+                    <span>{t("Perfis", "Profiles")}</span>
                   </NavLink>
                 </SidebarMenuButton>
                 {profilesActive && (
@@ -142,7 +168,19 @@ export function AppSidebar() {
                     className={getNavClassName("/settings")}
                   >
                     <Settings className="h-4 w-4" />
-                    <span>Configurações</span>
+                    <span>{t("Configurações", "Settings")}</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/settings#cloud-sync"
+                    className={getNavClassName("/settings")}
+                  >
+                    <Cloud className="h-4 w-4" />
+                    <span>{t("Nuvem e sincronização", "Cloud & sync")}</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
